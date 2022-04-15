@@ -14,7 +14,7 @@ let
         then whenmodr (tail spds) d n f (whenmodd (head spds) d n f p)
         else p
   smt p = degradeBy (range 0.4 0.8 $ slow 2 sine) $ shift' (1-rand) p
-  stend a b p = p # begin a # end b
+  stend a b p = ((# begin a) . (# end b)) $ p
   bonk p =
     (# delay (range 0.1 0.3 $ shift' 1881 $ rand)) $
     (# delaytime (shift' 1882 $ (choose [(1/2048), (1/1024)..(1/32)]))) $
@@ -23,3 +23,7 @@ let
     (# delay (range m n $ shift' 1881 $ rand)) $
     (# delaytime (shift' 1882 $ (choose [(1/2048), (1/1024)..(1/32)]))) $
     (# delayfeedback (range 0.7 0.99 $ shift' 1883 $ rand)) $ p
+  thicken x y p = superimpose ((# pan 1).(|*| speed y)) $ ((# speed x) . (#pan 0)) $ p
+  thicken' p = thicken 1 0.8 $  p
+  vari degr dens p = degradeBy degr $ density dens $ p
+  vari' p = vari (range 0.2 0.8 rand) 2 $ p
