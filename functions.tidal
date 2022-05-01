@@ -1,19 +1,23 @@
 let
+  flood = putStr . concat . replicate 3000
+  sbpm tempo = (setcps (tempo/60/4))
   bpm tempo = (cps (tempo/60/4))
   m p = const (s "~") $ p
+  rsamp f = s f # (irand 50)
   limit p = (|* gain 1.2) $ p
   shift p = (1 ~>) $ p
   shift' n p = (n ~>) $ p
   rip8 a b p = within (0.25, 0.75) (slow 2 . rev . stut 8 a b) p
-  rip4 a b p = within (0.5, 1.0) (slow 2 . rev . stut 4 a b) p
+  rip4 a b p = within (0.25, 0.75) (slow 2 . rev . stut 4 a b) p
   rip howOften p = someCyclesBy howOften (rip8 0.5 (1/16)) $ p
   fx = ((|*| gain 0.9) . (superimpose (|*| speed 2) $) . (fast 2). (|*| up 1) . (|*| release 0.5))
+  fxm = ((|*| gain 0.9) . (superimpose (|*| speed 2) $) . (fast 2) .(|*| release 0.5))
   whenmodd spd d n f p = fast spd $ whenmod d n f $ slow spd $ p
   whenmodr spds d n f p =
       if (length spds) > 0
         then whenmodr (tail spds) d n f (whenmodd (head spds) d n f p)
         else p
-  smt p = degradeBy (range 0.4 0.8 $ slow 2 sine) $ shift' (1-rand) p
+  smt p = degradeBy (range 0.4 0.8 $ slow 2 sine) $ shift' (0.0625) $ p
   stend a b p = ((# begin a) . (# end b)) $ p
   bonk p =
     (# delay (range 0.1 0.3 $ shift' 1881 $ rand)) $
@@ -25,5 +29,9 @@ let
     (# delayfeedback (range 0.7 0.99 $ shift' 1883 $ rand)) $ p
   thicken x y p = superimpose ((# pan 1).(|*| speed y)) $ ((# speed x) . (#pan 0)) $ p
   thicken' p = thicken 1 0.8 $  p
-  vari degr dens p = degradeBy degr $ density dens $ p
-  vari' p = vari (range 0.2 0.8 rand) 2 $ p
+  vari degr dens p = degradeBy (degr/10) $ density dens $ p
+  vari' p = vari (range 2 8 rand) 2 $ p
+  inverse 0 = 1
+  inverse 1 = 0
+  gn pattern p = (gain pattern) # p
+  gi pattern p = (gain ( inverse <$> pattern)) # p
